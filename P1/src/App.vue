@@ -1,73 +1,141 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import TabMenu from 'primevue/tabmenu'
-import Button from 'primevue/button'
+import { computed, ref, provide } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { store } from "./store.js";
 
-const route  = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const topNavRoutes = ['Record', 'Explore', 'Projects']
-const showTopNav   = computed(() => topNavRoutes.includes(route.name))
+const topTabs = [
+  { label: "Record", icon: "pi pi-microphone", path: "/record" },
+  { label: "Explore", icon: "pi pi-compass", path: "/explore" },
+  { label: "Projects", icon: "pi pi-folder", path: "/projects" },
+];
 
-const topNavItems = [
-  { label: 'Record',   icon: 'pi pi-microphone', command: () => router.push('/record')   },
-  { label: 'Explore',  icon: 'pi pi-compass',    command: () => router.push('/explore')  },
-  { label: 'Projects', icon: 'pi pi-folder',     command: () => router.push('/projects') },
-]
+function goTab(tab) {
+  store.activeTab = tab.label;
+  router.push(tab.path);
+}
 
-const activeTabIndex = computed(() => topNavRoutes.indexOf(route.name))
+const showAddProject = ref(false);
+provide("showAddProject", showAddProject);
 
-const bottomNav = [
-  { icon: 'pi pi-search',     route: 'Search'  },
-  { icon: 'pi pi-globe',      route: 'Map'     },
-  { icon: 'pi pi-plus-circle', route: 'Record', large: true },
-  { icon: 'pi pi-chart-line', route: 'Explore' },
-  { icon: 'pi pi-user',       route: 'Profile' },
-]
+const bottomNav = computed(() => {
+  const items = [
+    {
+      id: "search",
+      icon: "pi pi-search",
+      active: route.name === "Search",
+      action: () => router.push("/search"),
+    },
+  ];
+  if (store.activeTab === "Explore")
+    items.push({
+      id: "map",
+      icon: "pi pi-globe",
+      active: route.name === "Map",
+      action: () => router.push("/map"),
+    });
+  if (store.activeTab === "Projects")
+    items.push({
+      id: "add",
+      icon: "pi pi-plus-circle",
+      large: true,
+      active: false,
+      action: () => {
+        showAddProject.value = true;
+      },
+    });
+  items.push({
+    id: "profile",
+    icon: "pi pi-user",
+    active: route.name === "Profile",
+    action: () => router.push("/profile"),
+  });
+  return items;
+});
 </script>
 
 <template>
-  <div class="app-container">
-    <header v-if="showTopNav" class="top-nav">
-      <TabMenu :activeIndex="activeTabIndex" :model="topNavItems" />
+  <div class="app">
+    <header class="top-nav">
+      <button
+        v-for="tab in topTabs"
+        :key="tab.label"
+        class="top-tab"
+        :class="{ active: store.activeTab === tab.label }"
+        @click="goTab(tab)"
+      >
+        <i :class="tab.icon" /> {{ tab.label }}
+      </button>
     </header>
-
-    <main class="content-area">
-      <router-view />
-    </main>
-
+    <main class="content"><router-view /></main>
     <footer class="bottom-nav">
-      <Button
-        v-for="item in bottomNav" :key="item.route"
-        :icon="item.icon"
-        :size="item.large ? 'large' : undefined"
-        text
-        :class="{ active: route.name === item.route }"
-        @click="router.push(item.route.toLowerCase())"
-      />
+      <button
+        v-for="item in bottomNav"
+        :key="item.id"
+        class="nav-btn"
+        :class="{ active: item.active, large: item.large }"
+        @click="item.action()"
+      >
+        <i :class="item.icon" />
+      </button>
     </footer>
   </div>
 </template>
 
 <style>
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
-  background-color: #121212;
+  background: #121212;
 }
 
-.app-container {
+.app {
   display: flex;
   flex-direction: column;
   height: 100vh;
   max-width: 420px;
   margin: 0 auto;
-  background-color: #1e1e1e;
+  background: #1e1e1e;
   color: white;
   font-family: sans-serif;
 }
 
-.content-area {
+.top-nav {
+  display: flex;
+  background: #121212;
+  border-bottom: 1px solid #2a2a2a;
+  flex-shrink: 0;
+}
+.top-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 13px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #555;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+.top-tab.active {
+  color: white;
+  border-bottom-color: #6366f1;
+}
+.top-tab:hover:not(.active) {
+  color: #aaa;
+}
+
+.content {
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
@@ -76,11 +144,40 @@ body {
 .bottom-nav {
   display: flex;
   justify-content: space-around;
-  padding: 0.8rem 0;
+  align-items: center;
+  padding: 0.5rem 0;
   background: #121212;
-  border-top: 1px solid #333;
+  border-top: 1px solid #2a2a2a;
+  flex-shrink: 0;
+}
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.nav-btn.large {
+  font-size: 1.7rem;
+  color: #6366f1;
+}
+.nav-btn.large:hover {
+  color: #818cf8;
+}
+.nav-btn.active {
+  color: #6366f1;
+}
+.nav-btn:hover:not(.active):not(.large) {
+  color: #aaa;
 }
 
-.active { color: #6366f1 !important; }
-.w-full { width: 100%; }
+.w-full {
+  width: 100%;
+}
 </style>
