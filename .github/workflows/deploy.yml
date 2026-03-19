@@ -15,11 +15,14 @@ jobs:
           node-version: 22
 
       - run: npm install
+        working-directory: P1
+
       - run: npm run build
+        working-directory: P1
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: P1/dist
 
       - uses: actions/deploy-pages@v4
 
