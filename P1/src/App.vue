@@ -24,6 +24,7 @@ const bottomNav = computed(() => {
   const items = [
     {
       id: "search",
+      label: "Search",
       icon: "pi pi-search",
       active: route.name === "Search",
       action: () => router.push("/search"),
@@ -32,6 +33,7 @@ const bottomNav = computed(() => {
   if (store.activeTab === "Explore")
     items.push({
       id: "map",
+      label: "Map",
       icon: "pi pi-globe",
       active: route.name === "Map",
       action: () => router.push("/map"),
@@ -39,6 +41,7 @@ const bottomNav = computed(() => {
   if (store.activeTab === "Projects")
     items.push({
       id: "add",
+      label: "Add",
       icon: "pi pi-plus-circle",
       large: true,
       active: false,
@@ -48,6 +51,7 @@ const bottomNav = computed(() => {
     });
   items.push({
     id: "profile",
+    label: "Profile",
     icon: "pi pi-user",
     active: route.name === "Profile",
     action: () => router.push("/profile"),
@@ -69,8 +73,7 @@ const bottomNav = computed(() => {
         <i :class="tab.icon" /> {{ tab.label }}
       </button>
     </header>
-    <main class="content"><router-view /></main>
-    <footer class="bottom-nav">
+    <nav class="bottom-nav">
       <button
         v-for="item in bottomNav"
         :key="item.id"
@@ -79,8 +82,10 @@ const bottomNav = computed(() => {
         @click="item.action()"
       >
         <i :class="item.icon" />
+        <span class="nav-label">{{ item.label }}</span>
       </button>
-    </footer>
+    </nav>
+    <main class="content"><router-view /></main>
   </div>
 </template>
 
@@ -135,26 +140,22 @@ body {
   color: #aaa;
 }
 
-.content {
-  flex: 1;
-  padding: 1.5rem;
-  overflow-y: auto;
-}
-
 .bottom-nav {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.4rem 0;
   background: #121212;
-  border-top: 1px solid #2a2a2a;
+  border-bottom: 1px solid #2a2a2a;
   flex-shrink: 0;
 }
 .nav-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 16px;
+  gap: 3px;
+  padding: 6px 16px;
   background: none;
   border: none;
   color: #555;
@@ -162,6 +163,10 @@ body {
   border-radius: 8px;
   cursor: pointer;
   transition: color 0.2s;
+}
+.nav-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.02em;
 }
 .nav-btn.large {
   font-size: 1.7rem;
@@ -175,6 +180,12 @@ body {
 }
 .nav-btn:hover:not(.active):not(.large) {
   color: #aaa;
+}
+
+.content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
 }
 
 .w-full {
